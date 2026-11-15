@@ -135,7 +135,11 @@ static partial class GameEngine
         var frame = new StringBuilder();
         string mode = level switch { 1 => "patrol", 2 => "chase", _ => "chase x1.5" };
         frame.AppendLine(($"MINE ESCAPE | Level {level} | Creeper: {mode}").PadRight(StatusWidth));
-        frame.AppendLine($"Diamonds left: {round.Diamonds} | Pickaxe uses: {round.PickaxeUses}");
+        frame.Append($"Diamonds left: {round.Diamonds}");
+        if (level > 1)
+            frame.AppendLine($" | Pickaxe uses: {round.PickaxeUses}");
+        else
+            frame.AppendLine();
 
         for (int row = 0; row < round.Board.GetLength(0); row++)
         {

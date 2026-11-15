@@ -19,6 +19,7 @@ static partial class GameEngine
             { 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
             { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
         };
+        map[5, 5] = Diamond; // !הוספתי
         if (level > 1)
         {
             map[4, 2] = Pickaxe;

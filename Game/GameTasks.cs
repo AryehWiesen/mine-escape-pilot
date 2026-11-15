@@ -9,7 +9,9 @@ static class GameTasks
     // בדקו שהשורה והעמודה בתוך הלוח. רק אחר כך בדקו שהיעד אינו קיר.
     internal static bool CanMoveTo(int[,] board, int row, int col)
     {
-        return false;
+        return row >= 0 && row < board.GetLength(0)
+               && col >= 0 && col < board.GetLength(1)
+               && board[row, col] != Wall;
     }
 
     // TODO 2
