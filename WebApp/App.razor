@@ -1,0 +1,89 @@
+@namespace MineEscape.Web
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+
+<main>
+    <header><h1>Mine Escape</h1><button @onclick="Restart">Restart</button></header>
+    <div class="stats">
+        <span>@level / 3 · @Modes[level - 1]</span>
+        <span>💎 @round.Diamonds &nbsp; ⛏️ @round.PickaxeUses</span>
+    </div>
+    <div class="stage">
+        <div class="board" aria-label="Mine map" style="@($"--columns:{round.Board.GetLength(1)}")">
+            @for (int row = 0; row < round.Board.GetLength(0); row++)
+            {
+                @for (int col = 0; col < round.Board.GetLength(1); col++)
+                {
+                    <span class="tile">@GlyphAt(row, col)</span>
+                }
+            }
+        </div>
+        @if (round.Finished)
+        {
+            bool victory = round.Won && level == GameEngine.FinalLevel;
+            string accent = round.Won ? (victory ? "#ffcf5b" : "#76e6df") : "#ff646c";
+            <div class="panel" style="@($"--accent:{accent}")" role="status">
+                <strong>@(round.Won ? (victory ? "🔥 VICTORY! 👑" : "LEVEL PASSED!") : "☠️ GAME OVER")</strong>
+                <p>@(round.Won ? (victory ? "All three levels cleared." : "Prepare for next challenge") : "The Creeper got you.")</p>
+                @if (!round.Won || victory)
+                {
+                    <button @onclick="() => RetryOrReplay(victory)">@(victory ? "Play again" : "Retry")</button>
+                }
+            </div>
+        }
+    </div>
+    <div class="note" aria-live="polite">@round.Message</div>
+    <nav class="pad" aria-label="Move">
+        <button class="up" aria-label="Move up" disabled="@round.Finished" @onclick="() => MoveAsync(-1, 0)">↑</button>
+        <button class="left" aria-label="Move left" disabled="@round.Finished" @onclick="() => MoveAsync(0, -1)">←</button>
+        <button class="down" aria-label="Move down" disabled="@round.Finished" @onclick="() => MoveAsync(1, 0)">↓</button>
+        <button class="right" aria-label="Move right" disabled="@round.Finished" @onclick="() => MoveAsync(0, 1)">→</button>
+    </nav>
+</main>
+
+@code {
+    private static readonly string[] Modes = { "Patrol", "Pursuit", "Frenzy" };
+    private static readonly string[] Creepers = { "😈", "👺", "👹" };
+    private static readonly string[] Tiles = { "", "🧱", "💎", "🚪", "🧑", "", "⛏️" };
+    private int level = 1;
+    private GameEngine.Round round = new(GameEngine.LevelMap(1), 1);
+
+    private string GlyphAt(int row, int col)
+    {
+        if (row == round.PlayerRow && col == round.PlayerCol)
+            return Tiles[GameEngine.Player];
+        if (row == round.CreeperRow && col == round.CreeperCol)
+            return Creepers[level - 1];
+        return Tiles[round.Board[row, col]];
+    }
+
+    private void Restart() => round = new GameEngine.Round(GameEngine.LevelMap(level), level);
+    private void Replay()
+    {
+        level = 1;
+        Restart();
+    }
+
+    private void RetryOrReplay(bool victory)
+    {
+        if (victory) Replay();
+        else Restart();
+    }
+
+    private async Task MoveAsync(int row, int col)
+    {
+        if (round.Finished)
+            return;
+        round.Move(row, col);
+        if (!round.Won || level == GameEngine.FinalLevel)
+            return;
+
+        var completed = round;
+        await Task.Delay(1800);
+        if (ReferenceEquals(round, completed))
+        {
+            level++;
+            Restart();
+        }
+    }
+}
